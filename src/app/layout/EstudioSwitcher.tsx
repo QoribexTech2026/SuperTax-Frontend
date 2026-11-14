@@ -23,19 +23,29 @@ export function EstudioSwitcher() {
   const setCompanyId = useActiveCompany((s) => s.setCompanyId)
   const [creando, setCreando] = useState(false)
 
-  // Auto-resuelve el estudio activo si falta o ya no existe: toma el de la empresa
-  // activa; si no, el primero. Así el filtro de empresas siempre es coherente.
+  // Mantiene coherentes el estudio y la empresa activos: el estudio debe existir, y
+  // la empresa activa debe pertenecer a ese estudio. Sin el paso 2, un `companyId`
+  // persistido de OTRO estudio sigue activo al cambiar de estudio y "filtra" sus
+  // módulos al sidebar (bug de parpadeo en un estudio sin empresas).
   useEffect(() => {
     if (estudios.length === 0) return
-    if (estudioId != null && estudios.some((e) => e.id === estudioId)) return
-    const empresaActiva = companies.find((c) => c.id === companyId)
-    const preferido = empresaActiva?.estudio_id ?? null
-    const destino =
-      preferido != null && estudios.some((e) => e.id === preferido)
-        ? preferido
-        : estudios[0].id
-    setEstudioId(destino)
-  }, [estudios, estudioId, companies, companyId, setEstudioId])
+    // 1. Estudio activo válido; si no, el de la empresa activa o el primero.
+    let activo = estudioId
+    if (activo == null || !estudios.some((e) => e.id === activo)) {
+      const empresaActiva = companies.find((c) => c.id === companyId)
+      const preferido = empresaActiva?.estudio_id ?? null
+      activo =
+        preferido != null && estudios.some((e) => e.id === preferido) ? preferido : estudios[0].id
+      setEstudioId(activo)
+    }
+    // 2. La empresa activa debe pertenecer al estudio activo; si no, la primera de
+    //    ese estudio (o ninguna si aún no tiene empresas).
+    if (!companies.some((c) => c.id === companyId && c.estudio_id === activo)) {
+      const primera = companies.find((c) => c.estudio_id === activo)
+      const nuevo = primera ? primera.id : null
+      if (nuevo !== companyId) setCompanyId(nuevo)
+    }
+  }, [estudios, estudioId, companies, companyId, setEstudioId, setCompanyId])
 
   const cambiarEstudio = (id: number) => {
     setEstudioId(id)

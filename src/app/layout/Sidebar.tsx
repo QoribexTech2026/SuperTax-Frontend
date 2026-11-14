@@ -14,6 +14,7 @@ import { NavLink } from "react-router-dom"
 import { useActivity } from "@/app/layout/useActivity"
 import { cn } from "@/shared/lib/utils"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
+import { useActiveEstudio } from "@/shared/stores/activeEstudio"
 import { useAuthStore } from "@/shared/stores/auth"
 
 import type { LucideIcon } from "lucide-react"
@@ -29,11 +30,17 @@ interface NavItem {
 function useNavItems(): NavItem[] {
   const user = useAuthStore((s) => s.user)
   const companyId = useActiveCompany((s) => s.companyId)
-  const empresa = user?.companies.find((c) => c.id === companyId)
+  const estudioId = useActiveEstudio((s) => s.estudioId)
+  // La empresa activa solo cuenta si pertenece al estudio activo: así un companyId
+  // persistido de otro estudio no "filtra" sus módulos mientras se reconcilia.
+  const empresa = user?.companies.find((c) => c.id === companyId && c.estudio_id === estudioId)
   const modulos = empresa?.modules ?? []
   const actividad = useActivity()
+  // Admin del estudio activo: puede administrar aunque el estudio aún no tenga una
+  // empresa activa (si no, un estudio recién creado perdería el acceso a /admin).
+  const esAdminEstudio = user?.estudios?.some((e) => e.id === estudioId && e.es_admin) ?? false
   const puedeAdministrar =
-    (user?.is_platform_admin ?? false) || empresa?.role_key === "admin_empresa"
+    (user?.is_platform_admin ?? false) || empresa?.role_key === "admin_empresa" || esAdminEstudio
 
   return [
     { to: "/dashboard", label: "Inicio", icon: LayoutDashboard, visible: true },

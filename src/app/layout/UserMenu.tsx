@@ -18,8 +18,19 @@ export function UserMenu() {
     return () => document.removeEventListener("mousedown", onDown)
   }, [])
 
+  // Mientras `/me` carga (user null) se muestra un skeleton en vez de un "?" suelto,
+  // para que la demora del backend (cold start de Neon/Railway) se vea intencional.
+  if (!user) {
+    return (
+      <div className="flex items-center gap-2 px-2 py-1.5" aria-hidden>
+        <span className="size-8 animate-pulse rounded-lg bg-muted" />
+        <span className="hidden h-4 w-24 animate-pulse rounded bg-muted sm:block" />
+      </div>
+    )
+  }
+
   const iniciales =
-    user?.nombre
+    user.nombre
       ?.split(" ")
       .slice(0, 2)
       .map((n) => n[0])

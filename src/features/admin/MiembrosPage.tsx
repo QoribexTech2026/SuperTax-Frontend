@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { ShieldAlert, Trash2, UserPlus } from "lucide-react"
+import { Building2, ShieldAlert, Trash2, UserPlus } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 
@@ -84,6 +84,19 @@ export function MiembrosPage() {
   function onInvitar(e: FormEvent) {
     e.preventDefault()
     invitar.mutate()
+  }
+
+  // Miembros gestiona la EMPRESA ACTIVA. En un estudio sin empresas no hay empresa
+  // activa (companyId null): la query queda deshabilitada y mostraría un spinner
+  // infinito, así que se guía a crear/seleccionar una empresa en su lugar.
+  if (companyId == null) {
+    return (
+      <EmptyState
+        icon={Building2}
+        title="Sin empresa activa"
+        description="Este estudio todavía no tiene empresas. Crea una con el botón «+ Empresa» de la barra superior, o selecciona una para gestionar sus miembros. Para asignar personas a varias empresas a la vez, usa la pestaña «Equipo»."
+      />
+    )
   }
 
   const remover = async (m: Member) => {
