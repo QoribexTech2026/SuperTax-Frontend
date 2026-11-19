@@ -6,6 +6,7 @@ import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { useActiveEstudio } from "@/shared/stores/activeEstudio"
 import { useAuthStore } from "@/shared/stores/auth"
 import { Button } from "@/shared/ui/button"
+import { Select } from "@/shared/ui/select"
 
 /** Selector de estudio activo (multi-estudio). Con varios estudios muestra un
  * <select>; con uno solo, una etiqueta con su nombre (para que siempre se vea en
@@ -56,9 +57,9 @@ export function EstudioSwitcher() {
   return (
     <div className="flex items-center gap-2">
       {estudios.length > 1 ? (
-        <select
+        <Select
           aria-label="Estudio activo"
-          className="max-w-[14rem] truncate rounded-md border bg-background px-3 py-1.5 text-sm"
+          className="max-w-[14rem]"
           value={estudioId ?? ""}
           onChange={(e) => cambiarEstudio(Number(e.target.value))}
         >
@@ -67,7 +68,7 @@ export function EstudioSwitcher() {
               {e.nombre}
             </option>
           ))}
-        </select>
+        </Select>
       ) : estudios.length === 1 ? (
         <span className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1.5 text-sm text-muted-foreground">
           <Building2 className="size-4 shrink-0" />
@@ -76,9 +77,14 @@ export function EstudioSwitcher() {
       ) : null}
 
       {estudios.some((e) => e.es_admin) && (
-        <Button size="sm" variant="outline" onClick={() => setCreando(true)}>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => setCreando(true)}
+          aria-label="Crear estudio"
+          title="Crear estudio"
+        >
           <Plus className="size-4" />
-          Estudio
         </Button>
       )}
 

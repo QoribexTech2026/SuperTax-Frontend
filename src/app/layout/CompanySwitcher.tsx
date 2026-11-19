@@ -6,6 +6,7 @@ import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { useActiveEstudio } from "@/shared/stores/activeEstudio"
 import { useAuthStore } from "@/shared/stores/auth"
 import { Button } from "@/shared/ui/button"
+import { Select } from "@/shared/ui/select"
 
 /** Selector de empresa activa (Modelo B): un usuario opera varias empresas. */
 export function CompanySwitcher() {
@@ -33,8 +34,9 @@ export function CompanySwitcher() {
   return (
     <div className="flex items-center gap-2">
       {visibles.length > 0 ? (
-        <select
-          className="max-w-[18rem] truncate rounded-md border bg-background px-3 py-1.5 text-sm"
+        <Select
+          aria-label="Empresa activa"
+          className="max-w-[18rem]"
           value={companyId ?? ""}
           onChange={(e) => setCompanyId(Number(e.target.value))}
         >
@@ -43,15 +45,20 @@ export function CompanySwitcher() {
               {c.razon_social} — {c.ruc}
             </option>
           ))}
-        </select>
+        </Select>
       ) : (
         <span className="text-sm text-muted-foreground">Sin empresas aún</span>
       )}
 
       {esAdminActivo && (
-        <Button size="sm" variant="outline" onClick={() => setAgregando(true)}>
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={() => setAgregando(true)}
+          aria-label="Agregar empresa"
+          title="Agregar empresa"
+        >
           <Plus className="size-4" />
-          Empresa
         </Button>
       )}
 

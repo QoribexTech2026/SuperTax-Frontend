@@ -19,11 +19,14 @@ import { useAuthStore } from "@/shared/stores/auth"
 
 import type { LucideIcon } from "lucide-react"
 
+type NavGroup = "principal" | "operacion" | "gestion"
+
 interface NavItem {
   to: string
   label: string
   icon: LucideIcon
   visible: boolean
+  group: NavGroup
   badge?: number
 }
 
@@ -43,12 +46,13 @@ function useNavItems(): NavItem[] {
     (user?.is_platform_admin ?? false) || empresa?.role_key === "admin_empresa" || esAdminEstudio
 
   return [
-    { to: "/dashboard", label: "Inicio", icon: LayoutDashboard, visible: true },
+    { to: "/dashboard", label: "Inicio", icon: LayoutDashboard, visible: true, group: "principal" },
     {
       to: "/sire",
       label: "SIRE",
       icon: FileSpreadsheet,
       visible: modulos.includes("sire"),
+      group: "operacion",
       badge: actividad.sire.activos,
     },
     {
@@ -56,33 +60,43 @@ function useNavItems(): NavItem[] {
       label: "SUNAT",
       icon: Download,
       visible: modulos.includes("sunat"),
+      group: "operacion",
       badge: actividad.sunat.activos,
     },
-    { to: "/scanner", label: "Escaneo", icon: ScanLine, visible: modulos.includes("scanner") },
+    { to: "/scanner", label: "Escaneo", icon: ScanLine, visible: modulos.includes("scanner"), group: "operacion" },
     {
       to: "/datafilter",
       label: "DataFilter",
       icon: Database,
       visible: modulos.includes("datafilter"),
+      group: "operacion",
     },
     {
       to: "/correos",
       label: "Correos",
       icon: Mail,
       visible: modulos.includes("correos"),
+      group: "operacion",
     },
     {
       to: "/soporte",
       label: "Soporte",
       icon: LifeBuoy,
       visible: (user?.is_platform_admin ?? false) || companyId != null,
+      group: "gestion",
     },
-    { to: "/admin", label: "Administración", icon: Settings, visible: puedeAdministrar },
+    { to: "/admin", label: "Administración", icon: Settings, visible: puedeAdministrar, group: "gestion" },
   ]
 }
 
+const GRUPOS: { id: NavGroup; label: string | null }[] = [
+  { id: "principal", label: null },
+  { id: "operacion", label: "Operación" },
+  { id: "gestion", label: "Gestión" },
+]
+
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
-  const items = useNavItems()
+  const items = useNavItems().filter((item) => item.visible)
   return (
     <>
       <div className="flex h-16 items-center gap-2 px-6">
@@ -91,33 +105,44 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </span>
         <span className="text-lg font-semibold tracking-tight">SuperTax</span>
       </div>
-      <nav className="flex flex-col gap-1 px-3">
-        {items
-          .filter((item) => item.visible)
-          .map(({ to, label, icon: Icon, badge }) => (
-            <NavLink
-              key={to}
-              to={to}
-              onClick={onNavigate}
-              end={to === "/dashboard"}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50",
-                )
-              }
-            >
-              <Icon className="size-4" />
-              {label}
-              {badge ? (
-                <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
-                  {badge}
-                </span>
+      <nav className="flex flex-col gap-4 px-3">
+        {GRUPOS.map((grupo) => {
+          const delGrupo = items.filter((item) => item.group === grupo.id)
+          if (delGrupo.length === 0) return null
+          return (
+            <div key={grupo.id} className="flex flex-col gap-1">
+              {grupo.label ? (
+                <p className="px-3 pb-0.5 text-[11px] font-medium uppercase tracking-wider text-sidebar-foreground/40">
+                  {grupo.label}
+                </p>
               ) : null}
-            </NavLink>
-          ))}
+              {delGrupo.map(({ to, label, icon: Icon, badge }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  onClick={onNavigate}
+                  end={to === "/dashboard"}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50",
+                    )
+                  }
+                >
+                  <Icon className="size-4" />
+                  {label}
+                  {badge ? (
+                    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-semibold text-primary-foreground">
+                      {badge}
+                    </span>
+                  ) : null}
+                </NavLink>
+              ))}
+            </div>
+          )
+        })}
       </nav>
     </>
   )
