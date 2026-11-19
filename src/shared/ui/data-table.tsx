@@ -4,12 +4,25 @@ import {
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
+  type RowData,
   type SortingState,
 } from "@tanstack/react-table"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { useState } from "react"
 
 import { cn } from "@/shared/lib/utils"
+import { Checkbox } from "@/shared/ui/checkbox"
+
+import type { ReactNode } from "react"
+
+// Alineación por columna: los importes y cifras van a la derecha para que
+// decimales y miles cuadren en columna (contenido, no estilo, en un contable).
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    align?: "left" | "right" | "center"
+  }
+}
 
 interface DataTableProps<T> {
   columns: ColumnDef<T>[]
@@ -23,6 +36,16 @@ interface DataTableProps<T> {
   selectable?: boolean
   selected?: Set<string>
   onSelectedChange?: (next: Set<string>) => void
+  /** Fija el encabezado al hacer scroll vertical (tablas largas). */
+  stickyHeader?: boolean
+  /** Contenido a mostrar cuando no hay filas (en vez de una tabla en blanco). */
+  empty?: ReactNode
+}
+
+const ALIGN: Record<"left" | "right" | "center", string> = {
+  left: "",
+  right: "text-right",
+  center: "text-center",
 }
 
 /**
@@ -39,6 +62,8 @@ export function DataTable<T>({
   selectable,
   selected,
   onSelectedChange,
+  stickyHeader,
+  empty,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
@@ -69,31 +94,41 @@ export function DataTable<T>({
     onSelectedChange?.(next)
   }
 
+  if (rows.length === 0 && empty !== undefined) {
+    return <div className="overflow-x-auto">{empty}</div>
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
-        <thead>
+        <thead className={cn(stickyHeader && "sticky top-0 z-10 bg-card")}>
           <tr className="border-b text-left text-muted-foreground">
             {selectable ? (
               <th className="w-8 px-2 py-2">
-                <input
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                  aria-label="Seleccionar todos"
-                />
+                <Checkbox checked={allSelected} onChange={toggleAll} aria-label="Seleccionar todos" />
               </th>
             ) : null}
             {table.getHeaderGroups()[0]?.headers.map((h) => {
               const canSort = sortable && h.column.getCanSort()
               const dir = h.column.getIsSorted()
+              const align = h.column.columnDef.meta?.align ?? "left"
               return (
                 <th
                   key={h.id}
-                  className={cn("px-2 py-2 font-medium", canSort && "cursor-pointer select-none")}
+                  className={cn(
+                    "px-2 py-2 font-medium",
+                    ALIGN[align],
+                    canSort && "cursor-pointer select-none",
+                  )}
                   onClick={canSort ? h.column.getToggleSortingHandler() : undefined}
                 >
-                  <span className="inline-flex items-center gap-1">
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1",
+                      align === "right" && "w-full justify-end",
+                      align === "center" && "w-full justify-center",
+                    )}
+                  >
                     {flexRender(h.column.columnDef.header, h.getContext())}
                     {dir === "asc" ? <ChevronUp className="size-3" /> : null}
                     {dir === "desc" ? <ChevronDown className="size-3" /> : null}
@@ -112,8 +147,7 @@ export function DataTable<T>({
             >
               {selectable ? (
                 <td className="px-2 py-2" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={sel.has(row.id)}
                     onChange={() => toggleOne(row.id)}
                     aria-label="Seleccionar fila"
@@ -121,7 +155,10 @@ export function DataTable<T>({
                 </td>
               ) : null}
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-2 py-2">
+                <td
+                  key={cell.id}
+                  className={cn("px-2 py-2", ALIGN[cell.column.columnDef.meta?.align ?? "left"])}
+                >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}
