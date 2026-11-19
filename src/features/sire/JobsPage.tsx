@@ -4,7 +4,8 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
-import { descargarReporte, listJobs, resumeJob } from "@/features/sire/api"
+import { descargarCsv, descargarReporte, listJobs, resumeJob } from "@/features/sire/api"
+import { JobQuickView } from "@/features/sire/JobQuickView"
 import { StatusBadge } from "@/features/sire/StatusBadge"
 import { apiError } from "@/shared/lib/api/error"
 import { formatFecha, formatPeriodo } from "@/shared/lib/format"
@@ -34,6 +35,7 @@ export function JobsPage() {
   const queryClient = useQueryClient()
   const [estado, setEstado] = useState<JobStatus | "todos">("todos")
   const [busqueda, setBusqueda] = useState("")
+  const [abierto, setAbierto] = useState<ReconciliationJob | null>(null)
 
   const jobs = useQuery({
     queryKey: ["sire", "jobs", companyId],
@@ -69,9 +71,9 @@ export function JobsPage() {
       id: "acciones",
       cell: ({ row }) => (
         <div className="flex justify-end gap-1">
-          <Link to={`/sire/jobs/${row.original.id}`} className={buttonVariants({ variant: "ghost", size: "icon" })} aria-label="Ver detalle">
+          <Button size="icon" variant="ghost" aria-label="Ver detalle" onClick={() => setAbierto(row.original)}>
             <Eye className="size-4" />
-          </Link>
+          </Button>
           {row.original.has_report ? (
             <Button size="icon" variant="ghost" aria-label="Descargar reporte" onClick={() => bajarReporte.mutate(row.original.id)}>
               <Download className="size-4" />
@@ -88,6 +90,7 @@ export function JobsPage() {
   ]
 
   return (
+    <>
     <AsyncBoundary
       query={jobs}
       isEmpty={(d) => d.length === 0}
@@ -168,5 +171,18 @@ export function JobsPage() {
         )
       }}
     </AsyncBoundary>
+    {abierto ? (
+      <JobQuickView
+        job={abierto}
+        onClose={() => setAbierto(null)}
+        onResume={(id) => resume.mutate(id)}
+        onReporte={(id) => bajarReporte.mutate(id)}
+        onCsv={(id, esc) => {
+          descargarCsv(id, esc).catch((e) => toast.error(apiError(e, "No se pudo descargar")))
+        }}
+        resumePending={resume.isPending}
+      />
+    ) : null}
+    </>
   )
 }
