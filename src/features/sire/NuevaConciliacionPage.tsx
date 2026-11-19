@@ -24,6 +24,7 @@ import { CoberturaArchivo } from "@/features/sire/CoberturaArchivo"
 import { MapeoArchivo } from "@/features/sire/MapeoArchivo"
 import { StatusBadge } from "@/features/sire/StatusBadge"
 import { apiError } from "@/shared/lib/api/error"
+import { useActivePeriodo } from "@/shared/stores/activePeriodo"
 import { Alert, AlertDescription } from "@/shared/ui/alert"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -47,7 +48,8 @@ export function NuevaConciliacionPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const prevFileRef = useRef<HTMLInputElement>(null)
 
-  const [periodo, setPeriodo] = useState("")
+  // Prefija el periodo con el global del topbar (el usuario puede cambiarlo).
+  const [periodo, setPeriodo] = useState(() => useActivePeriodo.getState().periodo ?? "")
   const [tipoLibro, setTipoLibro] = useState<TipoLibro>("ventas")
   const [file, setFile] = useState<File | null>(null)
   const [filesMesAnterior, setFilesMesAnterior] = useState<File[]>([])
