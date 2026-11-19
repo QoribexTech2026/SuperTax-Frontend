@@ -14,6 +14,7 @@ import {
 } from "@/features/sunat/api"
 import { ESTADO_JOB, toneComprobante } from "@/features/sunat/estados"
 import { apiError } from "@/shared/lib/api/error"
+import { formatFechaHora } from "@/shared/lib/format"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { AsyncBoundary } from "@/shared/ui/async-boundary"
 import { Badge } from "@/shared/ui/badge"
@@ -95,7 +96,7 @@ export function HistorialPage() {
   const columnas: ColumnDef<SunatJobItem>[] = [
     { header: "Job", cell: ({ row }) => <span className="block max-w-[220px] truncate font-mono text-xs">{row.original.job_id}</span> },
     { header: "Estado", cell: ({ row }) => <StatusBadge value={row.original.status} map={ESTADO_JOB} /> },
-    { header: "Fecha", cell: ({ row }) => <span className="text-muted-foreground">{new Date(row.original.created_at).toLocaleString("es-PE")}</span> },
+    { header: "Fecha", cell: ({ row }) => <span className="text-muted-foreground">{formatFechaHora(row.original.created_at)}</span> },
     {
       header: "",
       id: "acciones",

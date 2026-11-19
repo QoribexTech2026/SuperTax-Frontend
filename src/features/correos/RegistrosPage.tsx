@@ -15,23 +15,24 @@ import { AYUDA_COMPLETITUD, AYUDA_REVISION, COMPLETITUD, REVISION } from "@/feat
 import { FormularioDeCorreccion } from "@/features/correos/FormularioDeCorreccion"
 import { useAbrirDocumento } from "@/features/correos/hooks/useAbrirDocumento"
 import { apiError } from "@/shared/lib/api/error"
+import { formatPeriodo } from "@/shared/lib/format"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { AsyncBoundary } from "@/shared/ui/async-boundary"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
+import { Checkbox } from "@/shared/ui/checkbox"
 import { confirmar } from "@/shared/ui/confirm"
 import { DataTable } from "@/shared/ui/data-table"
 import { Drawer } from "@/shared/ui/drawer"
 import { EmptyState } from "@/shared/ui/empty-state"
+import { FormField } from "@/shared/ui/form-field"
 import { Input } from "@/shared/ui/input"
-import { Label } from "@/shared/ui/label"
 import { MoneyCell } from "@/shared/ui/money-cell"
 import { PageHeader } from "@/shared/ui/page-header"
 import { Select } from "@/shared/ui/select"
 import { StatusBadge } from "@/shared/ui/status-badge"
 
 import type { ColumnDef } from "@tanstack/react-table"
-import type { ReactNode } from "react"
 
 const PAGINA = 25
 
@@ -101,9 +102,9 @@ export function RegistrosPage() {
   const columnas: ColumnDef<RecordSummary>[] = [
     { header: "RUC", cell: ({ row }) => <span className="font-mono text-xs">{row.original.ruc_contribuyente ?? "—"}</span> },
     { header: "Nombre", cell: ({ row }) => row.original.nombre_contribuyente || "—" },
-    { header: "Periodo", cell: ({ row }) => <span className="tabular-nums">{row.original.periodo ?? "—"}</span> },
+    { header: "Periodo", cell: ({ row }) => <span className="tabular-nums">{formatPeriodo(row.original.periodo)}</span> },
     { header: "Fecha", cell: ({ row }) => <span className="whitespace-nowrap">{row.original.fecha_de_pago ?? "—"}</span> },
-    { header: "Importe", cell: ({ row }) => <MoneyCell amount={row.original.importe_pagado} currency={row.original.moneda} /> },
+    { header: "Importe", meta: { align: "right" }, cell: ({ row }) => <MoneyCell amount={row.original.importe_pagado} currency={row.original.moneda} /> },
     {
       header: "Estado",
       cell: ({ row }) => (
@@ -154,31 +155,31 @@ export function RegistrosPage() {
             className="space-y-4"
           >
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <Campo label="RUC arrendador">
+              <FormField label="RUC arrendador">
                 <Input value={ruc} onChange={(e) => setRuc(e.target.value)} maxLength={11} placeholder="11 dígitos" />
-              </Campo>
-              <Campo label="RUC inquilino">
+              </FormField>
+              <FormField label="RUC inquilino">
                 <Input value={rucInquilino} onChange={(e) => setRucInquilino(e.target.value)} maxLength={11} placeholder="11 dígitos" />
-              </Campo>
-              <Campo label="Solo aprobados">
+              </FormField>
+              <FormField label="Solo aprobados">
                 <label className="flex h-9 items-center gap-2 text-sm">
-                  <input type="checkbox" checked={soloAprobados} onChange={(e) => setSoloAprobados(e.target.checked)} />
+                  <Checkbox checked={soloAprobados} onChange={(e) => setSoloAprobados(e.target.checked)} />
                   <span className="text-muted-foreground">Excluir pendientes y rechazados</span>
                 </label>
-              </Campo>
-              <Campo label="Periodo desde (AAAAMM)">
+              </FormField>
+              <FormField label="Periodo desde (AAAAMM)">
                 <Input value={periodoDesde} onChange={(e) => setPeriodoDesde(e.target.value)} maxLength={6} placeholder="202501" />
-              </Campo>
-              <Campo label="Periodo hasta (AAAAMM)">
+              </FormField>
+              <FormField label="Periodo hasta (AAAAMM)">
                 <Input value={periodoHasta} onChange={(e) => setPeriodoHasta(e.target.value)} maxLength={6} placeholder="202512" />
-              </Campo>
+              </FormField>
               <div className="hidden lg:block" />
-              <Campo label="Fecha de pago desde">
+              <FormField label="Fecha de pago desde">
                 <Input type="date" value={fechaDesde} onChange={(e) => setFechaDesde(e.target.value)} />
-              </Campo>
-              <Campo label="Fecha de pago hasta">
+              </FormField>
+              <FormField label="Fecha de pago hasta">
                 <Input type="date" value={fechaHasta} onChange={(e) => setFechaHasta(e.target.value)} />
-              </Campo>
+              </FormField>
             </div>
             <Button type="submit" variant="outline">
               Aplicar filtros
@@ -291,15 +292,6 @@ function OrigenCell({
       {r.origen.remitente ? (
         <span className="truncate text-xs text-muted-foreground">{r.origen.remitente}</span>
       ) : null}
-    </div>
-  )
-}
-
-function Campo({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <Label>{label}</Label>
-      {children}
     </div>
   )
 }

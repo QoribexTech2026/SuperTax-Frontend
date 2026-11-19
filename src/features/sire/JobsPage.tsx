@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { descargarReporte, listJobs, resumeJob } from "@/features/sire/api"
 import { StatusBadge } from "@/features/sire/StatusBadge"
 import { apiError } from "@/shared/lib/api/error"
+import { formatFecha, formatPeriodo } from "@/shared/lib/format"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { AsyncBoundary } from "@/shared/ui/async-boundary"
 import { Button, buttonVariants } from "@/shared/ui/button"
@@ -44,11 +45,11 @@ export function JobsPage() {
 
   const columnas: ColumnDef<ReconciliationJob>[] = [
     { header: "#", cell: ({ row }) => <span className="font-mono text-xs">#{row.original.id}</span> },
-    { header: "Periodo", cell: ({ row }) => <span className="font-medium">{row.original.periodo.slice(0, 4)}/{row.original.periodo.slice(4)}</span> },
+    { header: "Periodo", cell: ({ row }) => <span className="font-medium tabular-nums">{formatPeriodo(row.original.periodo)}</span> },
     { header: "Libro", cell: ({ row }) => <span className="capitalize">{row.original.tipo_libro}</span> },
     { header: "Archivo", cell: ({ row }) => <span className="block max-w-[180px] truncate text-xs text-muted-foreground">{row.original.empresa_filename ?? "—"}</span> },
     { header: "Estado", cell: ({ row }) => <StatusBadge status={row.original.status} /> },
-    { header: "Creado", cell: ({ row }) => <span className="text-muted-foreground">{new Date(row.original.created_at).toLocaleDateString("es-PE")}</span> },
+    { header: "Creado", cell: ({ row }) => <span className="text-muted-foreground">{formatFecha(row.original.created_at)}</span> },
     {
       header: "",
       id: "acciones",
