@@ -1,7 +1,12 @@
+import { formatMoney } from "@/shared/lib/format"
+import { cn } from "@/shared/lib/utils"
+
 /**
- * Celda monetaria: símbolo de moneda + importe en monoespaciada con numerales
- * tabulares, para que las columnas de importes aliñen y se lean como un balance.
- * Un valor ausente se muestra como guión, no como "0" engañoso.
+ * Celda monetaria: símbolo de moneda + importe formateado (miles + 2 decimales)
+ * en monoespaciada con numerales tabulares, para que las columnas de importes
+ * alineen y se lean como un balance. Un valor ausente se muestra como guión, no
+ * como "0" engañoso; los negativos se destacan en color destructivo (convención
+ * contable). La alineación a la derecha la aplica la columna (`meta.align`).
  */
 export function MoneyCell({
   amount,
@@ -10,13 +15,15 @@ export function MoneyCell({
   amount: string | number | null | undefined
   currency?: string
 }) {
-  if (amount === null || amount === undefined || amount === "") {
+  const formatted = formatMoney(amount)
+  if (formatted === null) {
     return <span className="text-muted-foreground">—</span>
   }
   const simbolo = currency === "USD" ? "US$" : "S/"
+  const negativo = formatted.startsWith("-")
   return (
-    <span className="font-mono tabular-nums">
-      {simbolo} {amount}
+    <span className={cn("font-mono tabular-nums", negativo && "text-destructive")}>
+      {simbolo} {formatted}
     </span>
   )
 }
