@@ -21,7 +21,7 @@ export const FASE: Record<string, string> = {
 
 export const COMPLETITUD: Record<string, StatusMeta> = {
   complete: { label: "Completo", tone: "success" },
-  partial: { label: "Parcial", tone: "info" },
+  partial: { label: "Parcial", tone: "warning" },
   empty: { label: "Vacío", tone: "danger" },
 }
 
@@ -33,7 +33,7 @@ export const AYUDA_COMPLETITUD: Record<string, string> = {
 
 export const REVISION: Record<string, StatusMeta> = {
   not_required: { label: "No requiere", tone: "neutral" },
-  pending: { label: "Pendiente", tone: "info" },
+  pending: { label: "Pendiente", tone: "warning" },
   approved: { label: "Aprobado", tone: "success" },
   rejected: { label: "Rechazado", tone: "danger" },
 }

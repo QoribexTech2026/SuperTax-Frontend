@@ -2,12 +2,13 @@ import { cn } from "@/shared/lib/utils"
 
 import type { HTMLAttributes } from "react"
 
-export type Tone = "neutral" | "info" | "success" | "danger"
+export type Tone = "neutral" | "info" | "success" | "warning" | "danger"
 
 const TONES: Record<Tone, string> = {
   neutral: "bg-secondary text-secondary-foreground",
   info: "bg-accent text-accent-foreground",
-  success: "bg-primary/15 text-primary",
+  success: "bg-success/15 text-success",
+  warning: "bg-warning/15 text-warning",
   danger: "bg-destructive/15 text-destructive",
 }
 

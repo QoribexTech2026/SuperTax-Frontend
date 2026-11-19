@@ -8,16 +8,16 @@ export const ESTADO_JOB: Record<SunatJobStatus, StatusMeta> = {
   procesando: { label: "Procesando", tone: "info" },
   completado: { label: "Completado", tone: "success" },
   error: { label: "Error", tone: "danger" },
-  cancelado: { label: "Cancelado", tone: "danger" },
+  cancelado: { label: "Cancelado", tone: "neutral" },
 }
 
 /**
  * Tono del estado de un comprobante. No es un enum cerrado (los errores llegan
  * como "Error: detalle"), por eso es una función y no un mapa: OK = éxito,
- * Parcial = info, cualquier otro (errores) = peligro.
+ * Parcial = requiere atención (ámbar), cualquier otro (errores) = peligro.
  */
 export function toneComprobante(estado: string): Tone {
   if (estado === "OK") return "success"
-  if (estado === "Parcial") return "info"
+  if (estado === "Parcial") return "warning"
   return "danger"
 }
