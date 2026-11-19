@@ -4,10 +4,19 @@ import type { DatasetOrigin, DatasetStatus } from "@/features/datafilter/types"
 type Tone = "neutral" | "info" | "success" | "danger"
 
 export const STATUS_META: Record<DatasetStatus, { label: string; tone: Tone }> = {
+  uploading: { label: "Subiendo", tone: "info" },
   pending: { label: "En cola", tone: "neutral" },
   processing: { label: "Procesando", tone: "info" },
   ready: { label: "Listo", tone: "success" },
   failed: { label: "Error", tone: "danger" },
+}
+
+/**
+ * Meta de estado con fallback: un status desconocido (p. ej. uno nuevo del
+ * backend) degrada el badge en vez de tumbar la vista completa.
+ */
+export function statusMeta(status: string): { label: string; tone: Tone } {
+  return STATUS_META[status as DatasetStatus] ?? { label: "Desconocido", tone: "neutral" }
 }
 
 export const ORIGIN_LABEL: Record<DatasetOrigin, string> = {
@@ -41,5 +50,5 @@ export function cleanNumber(value: number): string {
 
 /** true mientras el dataset sigue procesándose (para seguir sondeando). */
 export function enProceso(status: DatasetStatus): boolean {
-  return status === "pending" || status === "processing"
+  return status === "uploading" || status === "pending" || status === "processing"
 }

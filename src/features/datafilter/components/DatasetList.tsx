@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import { STATUS_META, formatBytes, formatRows } from "@/features/datafilter/lib"
+import { formatBytes, formatRows, statusMeta } from "@/features/datafilter/lib"
 import { cn } from "@/shared/lib/utils"
 import { Badge } from "@/shared/ui/badge"
 
@@ -30,6 +30,7 @@ export function DatasetList({ datasets, selectedId, onSelect, onDelete }: Datase
       {datasets.map((dataset) => {
         const selectable = dataset.status === "ready"
         const isSelected = dataset.id === selectedId
+        const meta = statusMeta(dataset.status)
         return (
           <li
             key={dataset.id}
@@ -45,9 +46,7 @@ export function DatasetList({ datasets, selectedId, onSelect, onDelete }: Datase
                 <span className="truncate text-sm font-medium" title={dataset.original_filename}>
                   {dataset.original_filename}
                 </span>
-                <Badge tone={STATUS_META[dataset.status].tone}>
-                  {STATUS_META[dataset.status].label}
-                </Badge>
+                <Badge tone={meta.tone}>{meta.label}</Badge>
               </div>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 {dataset.row_count != null ? `${formatRows(dataset.row_count)} filas · ` : ""}

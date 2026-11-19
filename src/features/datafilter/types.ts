@@ -1,6 +1,6 @@
 /** Contratos del módulo DataFilter (reflejan los schemas de FastAPI del backend). */
 
-export type DatasetStatus = "pending" | "processing" | "ready" | "failed"
+export type DatasetStatus = "uploading" | "pending" | "processing" | "ready" | "failed"
 /** Cómo se creó el dataset: subido, o derivado de un análisis. */
 export type DatasetOrigin = "uploaded" | "pivot" | "computed" | "replaced" | "deduped"
 
