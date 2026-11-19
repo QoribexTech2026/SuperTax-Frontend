@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Check, FileSpreadsheet, Inbox, X } from "lucide-react"
+import { Check, FileSpreadsheet, Inbox, Plus, Search, X } from "lucide-react"
 import { useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
@@ -11,6 +11,7 @@ import {
   listJobs,
   type ResultadoComprobante,
   type SunatJobItem,
+  type SunatJobStatus,
 } from "@/features/sunat/api"
 import { ESTADO_JOB, toneComprobante } from "@/features/sunat/estados"
 import { apiError } from "@/shared/lib/api/error"
@@ -23,9 +24,21 @@ import { Card, CardContent } from "@/shared/ui/card"
 import { DataTable } from "@/shared/ui/data-table"
 import { Drawer } from "@/shared/ui/drawer"
 import { EmptyState } from "@/shared/ui/empty-state"
+import { Input } from "@/shared/ui/input"
+import { Select } from "@/shared/ui/select"
 import { StatusBadge } from "@/shared/ui/status-badge"
+import { TableToolbar } from "@/shared/ui/table-toolbar"
 
 import type { ColumnDef } from "@tanstack/react-table"
+
+const FILTRO_ESTADO: { value: SunatJobStatus | "todos"; label: string }[] = [
+  { value: "todos", label: "Todos los estados" },
+  { value: "en_cola", label: "En cola" },
+  { value: "procesando", label: "Procesando" },
+  { value: "completado", label: "Completado" },
+  { value: "error", label: "Error" },
+  { value: "cancelado", label: "Cancelado" },
+]
 
 /** Marca de un comprobante: no pedido (—), presente (check) o ausente (equis). */
 function Marca({ pedido, tiene }: { pedido?: boolean; tiene?: boolean }) {
@@ -67,6 +80,8 @@ export function HistorialPage() {
   const companyId = useActiveCompany((s) => s.companyId)
   const queryClient = useQueryClient()
   const [abierto, setAbierto] = useState<string | null>(null)
+  const [estado, setEstado] = useState<SunatJobStatus | "todos">("todos")
+  const [busqueda, setBusqueda] = useState("")
 
   const jobs = useQuery({
     queryKey: ["sunat", "jobs", companyId],
@@ -144,13 +159,63 @@ export function HistorialPage() {
           />
         }
       >
-        {(data) => (
-          <Card>
-            <CardContent className="p-0">
-              <DataTable columns={columnas} data={data} getRowId={(j) => j.job_id} />
-            </CardContent>
-          </Card>
-        )}
+        {(data) => {
+          const q = busqueda.trim().toLowerCase()
+          const filtrados = data.filter((j) => {
+            if (estado !== "todos" && j.status !== estado) return false
+            if (q && !j.job_id.toLowerCase().includes(q)) return false
+            return true
+          })
+          return (
+            <div className="space-y-4">
+              <TableToolbar
+                actions={
+                  <Link to="/sunat" className={buttonVariants()}>
+                    <Plus className="size-4" />
+                    Nueva descarga
+                  </Link>
+                }
+              >
+                <Select
+                  aria-label="Filtrar por estado"
+                  className="w-auto"
+                  value={estado}
+                  onChange={(e) => setEstado(e.target.value as SunatJobStatus | "todos")}
+                >
+                  {FILTRO_ESTADO.map((o) => (
+                    <option key={o.value} value={o.value}>
+                      {o.label}
+                    </option>
+                  ))}
+                </Select>
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    value={busqueda}
+                    onChange={(e) => setBusqueda(e.target.value)}
+                    placeholder="Buscar job…"
+                    className="h-9 w-56 pl-8"
+                  />
+                </div>
+              </TableToolbar>
+              <Card>
+                <CardContent className="p-0">
+                  <DataTable
+                    columns={columnas}
+                    data={filtrados}
+                    getRowId={(j) => j.job_id}
+                    empty={
+                      <p className="p-6 text-center text-sm text-muted-foreground">
+                        Ningún job con esos filtros.
+                      </p>
+                    }
+                  />
+                </CardContent>
+              </Card>
+            </div>
+          )
+        }}
       </AsyncBoundary>
 
       <Drawer

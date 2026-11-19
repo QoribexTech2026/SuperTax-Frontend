@@ -12,6 +12,7 @@ import { TablaDocumentos } from "@/features/scanner/TablaDocumentos"
 import { TablaRegistros } from "@/features/scanner/TablaRegistros"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
 import { Card, CardContent } from "@/shared/ui/card"
+import { confirmar } from "@/shared/ui/confirm"
 import { EmptyState } from "@/shared/ui/empty-state"
 import { Spinner } from "@/shared/ui/spinner"
 
@@ -32,7 +33,6 @@ export function DocumentosPage() {
   const [grupoId, setGrupoId] = useState(GRUPOS[0].id)
   const [subtipo, setSubtipo] = useState("todos")
   const [detalle, setDetalle] = useState<Documento | null>(null)
-  const [tabPendiente, setTabPendiente] = useState<string | null>(null)
   const hayEdiciones = useRef(false)
 
   const { data: tipos } = useQuery({ queryKey: ["scanner", "tipos"], queryFn: getTipos })
@@ -107,13 +107,21 @@ export function DocumentosPage() {
     setDetalle(null)
     setCamposVisibles(leerCols(`scanner_cols_${id}_todos`))
     hayEdiciones.current = false
-    setTabPendiente(null)
   }
 
-  function intentarGrupo(id: string) {
+  async function intentarGrupo(id: string) {
     if (id === grupoId) return
-    if (hayEdiciones.current) setTabPendiente(id)
-    else irAGrupo(id)
+    if (!hayEdiciones.current) {
+      irAGrupo(id)
+      return
+    }
+    const ok = await confirmar({
+      title: "Tienes cambios sin guardar",
+      description: `Hay ediciones en "${grupo.label}" sin guardar. Si cambias de grupo se descartarán.`,
+      confirmLabel: "Descartar y continuar",
+      destructive: true,
+    })
+    if (ok) irAGrupo(id)
   }
 
   if (isLoading) {
@@ -137,32 +145,6 @@ export function DocumentosPage() {
 
   return (
     <div className="space-y-4">
-      {/* Guard de cambios sin guardar */}
-      {tabPendiente && (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl border bg-card p-6 shadow-2xl">
-            <h3 className="text-base font-bold">Tienes cambios sin guardar</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Hay ediciones en <strong>{grupo.label}</strong> sin guardar.
-            </p>
-            <div className="mt-5 flex justify-end gap-2">
-              <button
-                onClick={() => setTabPendiente(null)}
-                className="rounded-xl border px-4 py-2 text-sm hover:bg-muted"
-              >
-                Volver a guardar
-              </button>
-              <button
-                onClick={() => irAGrupo(tabPendiente)}
-                className="rounded-xl bg-destructive px-4 py-2 text-sm font-semibold text-white hover:bg-destructive/90"
-              >
-                Descartar y continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Tabs por grupo */}
       <nav className="flex flex-wrap gap-1 border-b">
         {GRUPOS.map((g) => {
