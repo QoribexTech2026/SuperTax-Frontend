@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Download, Eye, Inbox, Plus, RotateCcw } from "lucide-react"
+import { Download, Eye, Inbox, Plus, RotateCcw, Search } from "lucide-react"
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { toast } from "sonner"
 
@@ -13,13 +14,26 @@ import { Button, buttonVariants } from "@/shared/ui/button"
 import { Card, CardContent } from "@/shared/ui/card"
 import { DataTable } from "@/shared/ui/data-table"
 import { EmptyState } from "@/shared/ui/empty-state"
+import { Input } from "@/shared/ui/input"
+import { Select } from "@/shared/ui/select"
+import { TableToolbar } from "@/shared/ui/table-toolbar"
 
-import type { ReconciliationJob } from "@/shared/types"
+import type { JobStatus, ReconciliationJob } from "@/shared/types"
 import type { ColumnDef } from "@tanstack/react-table"
+
+const FILTRO_ESTADO: { value: JobStatus | "todos"; label: string }[] = [
+  { value: "todos", label: "Todos los estados" },
+  { value: "en_cola", label: "En cola" },
+  { value: "procesando", label: "Procesando" },
+  { value: "completado", label: "Completado" },
+  { value: "error", label: "Error" },
+]
 
 export function JobsPage() {
   const companyId = useActiveCompany((s) => s.companyId)
   const queryClient = useQueryClient()
+  const [estado, setEstado] = useState<JobStatus | "todos">("todos")
+  const [busqueda, setBusqueda] = useState("")
 
   const jobs = useQuery({
     queryKey: ["sire", "jobs", companyId],
@@ -92,18 +106,62 @@ export function JobsPage() {
       }
     >
       {(data) => {
-        const sorted = [...data].sort((a, b) => b.id - a.id)
+        const q = busqueda.trim().toLowerCase()
+        const filtrados = [...data]
+          .sort((a, b) => b.id - a.id)
+          .filter((j) => {
+            if (estado !== "todos" && j.status !== estado) return false
+            if (q) {
+              const texto = `${j.periodo} ${j.empresa_filename ?? ""} ${j.tipo_libro}`.toLowerCase()
+              if (!texto.includes(q)) return false
+            }
+            return true
+          })
         return (
           <div className="space-y-4">
-            <div className="flex justify-end">
-              <Link to="/sire/nueva" className={buttonVariants()}>
-                <Plus className="size-4" />
-                Nueva conciliación
-              </Link>
-            </div>
+            <TableToolbar
+              actions={
+                <Link to="/sire/nueva" className={buttonVariants()}>
+                  <Plus className="size-4" />
+                  Nueva conciliación
+                </Link>
+              }
+            >
+              <Select
+                aria-label="Filtrar por estado"
+                className="w-auto"
+                value={estado}
+                onChange={(e) => setEstado(e.target.value as JobStatus | "todos")}
+              >
+                {FILTRO_ESTADO.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  value={busqueda}
+                  onChange={(e) => setBusqueda(e.target.value)}
+                  placeholder="Buscar periodo o archivo…"
+                  className="h-9 w-56 pl-8"
+                />
+              </div>
+            </TableToolbar>
             <Card>
               <CardContent className="p-0">
-                <DataTable columns={columnas} data={sorted} getRowId={(j) => String(j.id)} />
+                <DataTable
+                  columns={columnas}
+                  data={filtrados}
+                  getRowId={(j) => String(j.id)}
+                  empty={
+                    <p className="p-6 text-center text-sm text-muted-foreground">
+                      Ningún job con esos filtros.
+                    </p>
+                  }
+                />
               </CardContent>
             </Card>
           </div>
