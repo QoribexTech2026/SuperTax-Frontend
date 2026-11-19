@@ -3,7 +3,6 @@ import { Menu, Moon, Plug, Sun } from "lucide-react"
 import { CompanySwitcher } from "@/app/layout/CompanySwitcher"
 import { EstudioSwitcher } from "@/app/layout/EstudioSwitcher"
 import { GlobalSearch } from "@/app/layout/GlobalSearch"
-import { PeriodoSwitcher } from "@/app/layout/PeriodoSwitcher"
 import { NotificationsBell } from "@/app/layout/NotificationsBell"
 import { UserMenu } from "@/app/layout/UserMenu"
 import { useConexiones } from "@/features/conexiones/store"
@@ -28,7 +27,6 @@ export function Topbar({ onMenu }: { onMenu: () => void }) {
 
       <EstudioSwitcher />
       <CompanySwitcher />
-      <PeriodoSwitcher />
 
       <div className="ml-auto flex items-center gap-2">
         <GlobalSearch />

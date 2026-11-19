@@ -17,7 +17,6 @@ import { useAbrirDocumento } from "@/features/correos/hooks/useAbrirDocumento"
 import { apiError } from "@/shared/lib/api/error"
 import { formatPeriodo } from "@/shared/lib/format"
 import { useActiveCompany } from "@/shared/stores/activeCompany"
-import { useActivePeriodo } from "@/shared/stores/activePeriodo"
 import { AsyncBoundary } from "@/shared/ui/async-boundary"
 import { Button } from "@/shared/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card"
@@ -42,12 +41,10 @@ export function RegistrosPage() {
   const queryClient = useQueryClient()
   const documento = useAbrirDocumento()
 
-  // Prefija el rango con el periodo global del topbar (un solo mes por defecto).
-  const periodoGlobal = useActivePeriodo.getState().periodo ?? ""
   const [ruc, setRuc] = useState("")
   const [rucInquilino, setRucInquilino] = useState("")
-  const [periodoDesde, setPeriodoDesde] = useState(periodoGlobal)
-  const [periodoHasta, setPeriodoHasta] = useState(periodoGlobal)
+  const [periodoDesde, setPeriodoDesde] = useState("")
+  const [periodoHasta, setPeriodoHasta] = useState("")
   const [fechaDesde, setFechaDesde] = useState("")
   const [fechaHasta, setFechaHasta] = useState("")
   const [soloAprobados, setSoloAprobados] = useState(false)
